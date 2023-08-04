@@ -9,6 +9,10 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  around_action do |_, block|
+    $prefab.with_context({user: {id: current_user&.id}}, &block)
+  end
+
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :enable_rack_profiler
 
