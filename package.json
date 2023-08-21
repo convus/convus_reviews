@@ -1,6 +1,5 @@
 {
   "name": "convus_reviews",
-  "private": "false",
   "scripts": {
     "build": "node esbuild.config.js",
     "build:css": "postcss ./app/assets/stylesheets/application.css -o ./app/assets/builds/application.css --minify",
@@ -35,10 +34,10 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
-    "standard": "^16.0.4",
     "babel-jest": "^27.4.6",
     "jest-cli": "^27.4.7",
-    "jest-junit": "^13.0.0"
+    "jest-junit": "^13.0.0",
+    "standard": "^16.0.4"
   },
   "standard": {
     "globals": [
@@ -56,5 +55,6 @@
     "env": [
       "jest"
     ]
-  }
+  },
+  "packageManager": "yarn@3.6.2"
 }

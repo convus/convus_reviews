@@ -1,5 +1,5 @@
 # To bump cache:
-# Increment & Replace: 'CACHE_V1' in this config
+# Increment & Replace: 'CACHE_V2' in this config
 
 version: 2
 jobs:
@@ -29,11 +29,11 @@ jobs:
       - restore_cache:
           keys:
             # This branch if available
-            - CACHE_V1-dep-{{ .Branch }}-
+            - CACHE_V2-dep-{{ .Branch }}-
             # Default branch if not
-            - CACHE_V1-dep-main-
+            - CACHE_V2-dep-main-
             # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
-            - CACHE_V1-dep-
+            - CACHE_V2-dep-
 
       - run:
           name: install dockerize
@@ -48,6 +48,8 @@ jobs:
           command: |
             curl -sSL "https://nodejs.org/download/release/v18.14.2/node-v18.14.2-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v18.14.2-linux-x64/bin/node
             curl https://www.npmjs.com/install.sh | sudo bash
+            sudo npm i -g corepack
+            yarn
       - run:
           name: "install bundler"
           command: gem install bundler
@@ -55,21 +57,22 @@ jobs:
           name: "bundle gems"
           command: bundle install --path=vendor/bundle --jobs=4 --retry=3
       # So that we can compile assets, since we use node & yarn
-      - run:
-          name: "Yarn Install"
-          command: yarn install --cache-folder ~/.cache/yarn
+      # - run:
+      #     name: "Yarn Install"
+      #     command: yarn install --cache-folder ~/.cache/yarn
       - run:
           name: "Assets: precompile"
           command: |
             set -x
             node --version
+            yarn --version
             bundle exec rails assets:precompile assets:clean --trace
             rm -rf public/assets
       - run:
           name: "Wait for PostgreSQL to start"
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - save_cache:
-          key: CACHE_V1-dep-{{ .Branch }}-{{ epoch }}
+          key: CACHE_V2-dep-{{ .Branch }}-{{ epoch }}
           paths:
             - ./vendor/bundle
             - ~/.bundle
@@ -77,6 +80,7 @@ jobs:
             - public/packs
             - public/packs-test
             - tmp/cache/assets/sprockets
+            - ~/.yarn
             - ~/.cache/yarn
             - ~/.cache/bundle
       - run:
@@ -100,13 +104,13 @@ jobs:
                               --out test-results/rspec/rspec.xml \
                               --format progress \
                               -- ${TESTFILES}
-      # - run:
-      #     name: "Jest: Tests"
-      #     command: |
-      #       mkdir -p test-results/junit
-      #       yarn test --ci --runInBand --reporters=default --reporters=jest-junit
-      #     environment:
-      #       JEST_JUNIT_OUTPUT_DIR: "test-results/junit/"
+      - run:
+          name: "Jest: Tests"
+          command: |
+            mkdir -p test-results/junit
+            yarn test --ci --runInBand --reporters=default --reporters=jest-junit
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: "test-results/junit/"
       - store_test_results:
           path: test-results
       - store_artifacts:
